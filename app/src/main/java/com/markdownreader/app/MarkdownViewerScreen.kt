@@ -55,6 +55,7 @@ fun MarkdownViewerScreen(
     val textColor = MaterialTheme.colorScheme.onBackground.toArgb()
     val linkColor = MaterialTheme.colorScheme.primary.toArgb()
     val backgroundColor = MaterialTheme.colorScheme.background.toArgb()
+    val scrollBehavior = TopAppBarDefaults.exitUntilCollapsedScrollBehavior()
 
     val markwon = remember(context, textColor) {
         val textSizePx = 16f * context.resources.displayMetrics.scaledDensity
@@ -76,8 +77,9 @@ fun MarkdownViewerScreen(
     }
 
     Scaffold(
+        modifier = Modifier.androidx.compose.ui.input.nestedscroll.nestedScroll(scrollBehavior.nestedScrollConnection),
         topBar = {
-            TopAppBar(
+            LargeTopAppBar(
                 title = {
                     Text(
                         text = fileName,
@@ -93,9 +95,10 @@ fun MarkdownViewerScreen(
                         )
                     }
                 },
-                colors = TopAppBarDefaults.topAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.primaryContainer,
-                    titleContentColor = MaterialTheme.colorScheme.onPrimaryContainer
+                scrollBehavior = scrollBehavior,
+                colors = TopAppBarDefaults.largeTopAppBarColors(
+                    containerColor = MaterialTheme.colorScheme.surface,
+                    scrolledContainerColor = MaterialTheme.colorScheme.surfaceContainer
                 )
             )
         }
@@ -105,7 +108,8 @@ fun MarkdownViewerScreen(
                 .fillMaxSize()
                 .padding(paddingValues),
             factory = { ctx ->
-                ScrollView(ctx).apply {
+                androidx.core.widget.NestedScrollView(ctx).apply {
+                    isNestedScrollingEnabled = true
                     layoutParams = ViewGroup.LayoutParams(
                         ViewGroup.LayoutParams.MATCH_PARENT,
                         ViewGroup.LayoutParams.MATCH_PARENT
