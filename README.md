@@ -54,6 +54,8 @@ The APKs will be in `app/build/outputs/apk/`.
 
 ## Supported Markdown Features
 
+- [x] LaTeX / KaTeX / MathJax math formulas (`$...$`, `$$...$$`, `\(...\)`, `\[...\]`)
+- [x] Automatic line breaks (single newlines preserved, like Obsidian)
 - [x] Headings (H1–H6)
 - [x] Bold, Italic, Bold+Italic
 - [x] Ordered and unordered lists

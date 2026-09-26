@@ -17,11 +17,32 @@ import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.viewinterop.AndroidView
 import io.noties.markwon.Markwon
+import io.noties.markwon.SoftBreakAddsNewLinePlugin
+import io.noties.markwon.ext.latex.JLatexMathPlugin
 import io.noties.markwon.ext.strikethrough.StrikethroughPlugin
 import io.noties.markwon.ext.tables.TablePlugin
 import io.noties.markwon.ext.tasklist.TaskListPlugin
 import io.noties.markwon.html.HtmlPlugin
+import io.noties.markwon.inlineparser.MarkwonInlineParserPlugin
 import io.noties.markwon.linkify.LinkifyPlugin
+
+/**
+ * Preprocesses markdown content to ensure MathJax, KaTeX, and LaTeX syntax
+ * are standardized for the Markwon renderer:
+ * - Converts MathJax block syntax `\[ ... \]` to `$$ ... $$`
+ * - Converts MathJax inline syntax `\( ... \)` to `$ ... $`
+ */
+private fun preprocessMarkdown(input: String): String {
+    // 1. Convert MathJax display blocks \[ ... \] to $$ ... $$
+    var result = input.replace(Regex("""(?s)\\\[(.*?)\\\]""")) { match ->
+        "\n$$\n" + match.groupValues[1].trim() + "\n$$\n"
+    }
+    // 2. Convert MathJax inline math \( ... \) to $ ... $
+    result = result.replace(Regex("""\\\((.*?)\\\)""")) { match ->
+        "$" + match.groupValues[1].trim() + "$"
+    }
+    return result
+}
 
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
@@ -35,13 +56,22 @@ fun MarkdownViewerScreen(
     val linkColor = MaterialTheme.colorScheme.primary.toArgb()
     val backgroundColor = MaterialTheme.colorScheme.background.toArgb()
 
-    val markwon = remember(context) {
+    val markwon = remember(context, textColor) {
+        val textSizePx = 16f * context.resources.displayMetrics.scaledDensity
         Markwon.builder(context)
             .usePlugin(TablePlugin.create(context))
             .usePlugin(StrikethroughPlugin.create())
             .usePlugin(TaskListPlugin.create(context))
             .usePlugin(HtmlPlugin.create())
             .usePlugin(LinkifyPlugin.create())
+            .usePlugin(SoftBreakAddsNewLinePlugin.create())
+            .usePlugin(MarkwonInlineParserPlugin.create())
+            .usePlugin(JLatexMathPlugin.create(textSizePx) { builder ->
+                builder.inlinesEnabled(true)
+                builder.blocksEnabled(true)
+                builder.theme().textColor(textColor)
+                builder.errorHandler { _, _ -> null }
+            })
             .build()
     }
 
@@ -105,7 +135,8 @@ fun MarkdownViewerScreen(
                 textView.setTextColor(textColor)
                 textView.setLinkTextColor(linkColor)
                 scrollView.setBackgroundColor(backgroundColor)
-                markwon.setMarkdown(textView, content)
+                val processed = preprocessMarkdown(content)
+                markwon.setMarkdown(textView, processed)
             }
         )
     }
