@@ -63,9 +63,9 @@ dependencies {
     implementation("io.noties.markwon:html:4.6.2")
     implementation("io.noties.markwon:linkify:4.6.2")
     implementation("io.noties.markwon:ext-latex:4.6.2")
-    implementation("ru.noties:jlatexmath-android:0.3.1")
-    implementation("ru.noties:jlatexmath-android-font-cyrillic:0.3.1")
-    implementation("ru.noties:jlatexmath-android-font-greek:0.3.1")
+    implementation("ru.noties:jlatexmath-android:0.2.0")
+    implementation("ru.noties:jlatexmath-android-font-cyrillic:0.2.0")
+    implementation("ru.noties:jlatexmath-android-font-greek:0.2.0")
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")
