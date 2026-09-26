@@ -58,6 +58,15 @@ private fun preprocessMarkdown(input: String): String {
 }
 
 
+import android.content.Context
+import android.content.ContextWrapper
+
+tailrec fun Context.findActivity(): Activity? = when (this) {
+    is Activity -> this
+    is ContextWrapper -> baseContext.findActivity()
+    else -> null
+}
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MarkdownViewerScreen(
@@ -72,24 +81,26 @@ fun MarkdownViewerScreen(
 
     var isUiVisible by remember { mutableStateOf(false) }
     
-    val window = (context as Activity).window
     val view = androidx.compose.ui.platform.LocalView.current
-    val insetsController = remember(window) { WindowCompat.getInsetsController(window, view) }
+    val window = context.findActivity()?.window
+    val insetsController = remember(window, view) { 
+        window?.let { WindowCompat.getInsetsController(it, view) } 
+    }
 
     // Toggle immersive mode based on UI visibility
     LaunchedEffect(isUiVisible) {
         if (isUiVisible) {
-            insetsController.show(WindowInsetsCompat.Type.systemBars())
+            insetsController?.show(WindowInsetsCompat.Type.systemBars())
         } else {
-            insetsController.hide(WindowInsetsCompat.Type.systemBars())
-            insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            insetsController?.hide(WindowInsetsCompat.Type.systemBars())
+            insetsController?.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
 
     // Ensure system bars are shown when leaving this screen
     DisposableEffect(Unit) {
         onDispose {
-            insetsController.show(WindowInsetsCompat.Type.systemBars())
+            insetsController?.show(WindowInsetsCompat.Type.systemBars())
         }
     }
 
