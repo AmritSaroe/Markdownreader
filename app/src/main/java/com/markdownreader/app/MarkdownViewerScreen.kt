@@ -25,6 +25,8 @@ import io.noties.markwon.ext.tasklist.TaskListPlugin
 import io.noties.markwon.html.HtmlPlugin
 import io.noties.markwon.linkify.LinkifyPlugin
 import android.app.Activity
+import android.content.Context
+import android.content.ContextWrapper
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
@@ -56,10 +58,6 @@ private fun preprocessMarkdown(input: String): String {
     }
     return result
 }
-
-
-import android.content.Context
-import android.content.ContextWrapper
 
 tailrec fun Context.findActivity(): Activity? = when (this) {
     is Activity -> this
