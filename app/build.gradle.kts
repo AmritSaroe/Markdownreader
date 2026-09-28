@@ -1,6 +1,7 @@
 plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
+    kotlin("kapt")
 }
 
 android {
@@ -62,6 +63,9 @@ dependencies {
     implementation("io.noties.markwon:html:4.6.2")
     implementation("io.noties.markwon:linkify:4.6.2")
     implementation("io.noties.markwon:inline-parser:4.6.2")
+    implementation("io.noties.markwon:syntax-highlight:4.6.2")
+    implementation("io.noties:prism4j:2.0.0")
+    kapt("io.noties:prism4j-bundler:2.0.0")
     implementation("io.noties.markwon:ext-latex:4.6.2")
     implementation("ru.noties:jlatexmath-android:0.2.0")
     implementation("ru.noties:jlatexmath-android-font-cyrillic:0.2.0")

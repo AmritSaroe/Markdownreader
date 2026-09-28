@@ -120,6 +120,14 @@ fun MarkdownViewerScreen(
             })
             .usePlugin(StrikethroughPlugin.create())
             .usePlugin(TaskListPlugin.create(context))
+            .usePlugin(object : io.noties.markwon.AbstractMarkwonPlugin() {
+                override fun configureVisitor(builder: io.noties.markwon.MarkwonVisitor.Builder) {
+                    builder.on(org.commonmark.node.CustomBlock::class.java) { visitor, customBlock ->
+                        // Add spacing configuration to TaskList block items if needed
+                        visitor.visitChildren(customBlock)
+                    }
+                }
+            })
             .usePlugin(HtmlPlugin.create())
             .usePlugin(LinkifyPlugin.create())
             .usePlugin(SoftBreakAddsNewLinePlugin.create())
@@ -132,21 +140,43 @@ fun MarkdownViewerScreen(
                 builder.errorHandler { _, _ -> null }
             })
             .usePlugin(object : io.noties.markwon.AbstractMarkwonPlugin() {
+                val alpha12Text = androidx.core.graphics.ColorUtils.setAlphaComponent(textColor, 31) // ~12%
+                val alpha5Text = androidx.core.graphics.ColorUtils.setAlphaComponent(textColor, 13)  // ~5%
+
                 override fun configureTheme(builder: io.noties.markwon.core.MarkwonTheme.Builder) {
                     val density = context.resources.displayMetrics.density
-                    val alpha12Text = androidx.core.graphics.ColorUtils.setAlphaComponent(textColor, 31) // ~12%
-                    val alpha5Text = androidx.core.graphics.ColorUtils.setAlphaComponent(textColor, 13)  // ~5%
                     builder
                         .headingBreakHeight(0)
                         .thematicBreakHeight((1 * density).toInt())
                         .thematicBreakColor(alpha12Text)
-                        .headingTextSizeMultipliers(floatArrayOf(1.5f, 1.3f, 1.15f, 1.0f, 0.9f, 0.8f))
+                        .headingTextSizeMultipliers(floatArrayOf(1.5f, 1.3f, 1.15f, 1.05f, 0.95f, 0.9f))
                         .blockMargin((14 * density).toInt())
                         .codeBackgroundColor(alpha5Text)
                         .codeBlockBackgroundColor(alpha5Text)
                         .codeTextSize((15 * context.resources.displayMetrics.scaledDensity).toInt())
                 }
+
+                override fun configureVisitor(builder: io.noties.markwon.MarkwonVisitor.Builder) {
+                    super.configureVisitor(builder)
+                    // Customize blockquote for GFM Callouts
+                    builder.on(org.commonmark.node.BlockQuote::class.java) { visitor, blockQuote ->
+                        val length = visitor.length()
+                        visitor.visitChildren(blockQuote)
+                        // Simple background span for blockquotes to act as callouts
+                        val content = visitor.builder().substring(length)
+                        val color = when {
+                            content.startsWith("[!NOTE]") -> androidx.core.graphics.ColorUtils.setAlphaComponent(linkColor, 40)
+                            content.startsWith("[!TIP]") -> androidx.core.graphics.ColorUtils.setAlphaComponent(android.graphics.Color.GREEN, 40)
+                            content.startsWith("[!WARNING]") -> androidx.core.graphics.ColorUtils.setAlphaComponent(android.graphics.Color.YELLOW, 40)
+                            else -> alpha12Text
+                        }
+                        visitor.setSpans(length, io.noties.markwon.core.spans.BlockQuoteSpan(builder.theme().build(), color))
+                    }
+                }
             })
+            .usePlugin(io.noties.markwon.ext.syntax.SyntaxHighlightPlugin.create(
+                io.noties.prism4j.Prism4j(com.markdownreader.app.GrammarLocatorDef())
+            ))
             .build()
     }
 

@@ -1,15 +1,19 @@
-# Bug Fix: Resolve Table Overflow and Clipped Right Border in Markwon
+# Workflow Adjustment: Termux & GitHub Actions CI
 
-In the Markdown reader, wide tables (such as 10-column answer keys) are overflowing past the right edge of the screen and getting clipped.
+Do not run `./gradlew` locally. This project compiles exclusively via GitHub Actions CI from a Termux development environment.
 
 ---
 
-### Tasks:
-1. Locate where `TablePlugin` is configured in the Markwon setup.
-2. Customize the `TableTheme` inside `TablePlugin.create()`:
-   - Set `.tableCellPadding(4.dpToPx())` (or 3-4dp) to drastically reduce the default horizontal padding inside each cell.
-      - Set `.tableBorderWidth(1.dpToPx())` with a subtle outline color.
-      3. Check `MarkdownViewerScreen.kt` / layout host:
-         - Ensure horizontal padding on the document view is balanced (`16dp` start and end) so the layout does not bias content toward the right edge.
-         4. Verify that 10-column tables fit cleanly across standard mobile viewports without clipping the last column's right border.
-         
+### Instructions:
+1. **Check Wrapper in Git:**
+   - Run `git status` or `git log -1 -- gradlew` to verify whether `gradlew` and `gradle/wrapper/gradle-wrapper.properties` exist in git tracking or were accidentally removed.
+      - If `gradlew` exists in git, restore it (`git checkout HEAD -- gradlew gradle/`).
+         - If it was never added, keep our code changes ready and do not attempt to invoke a local build.
+         2. **Review Code Modifications:**
+            - Verify that all changes in `build.gradle.kts` (Prism4j, syntax highlighting, kapt/plugins) and `MarkdownViewerScreen.kt` (headings, callout visitor) are cleanly formatted with no syntax errors.
+            3. **Commit Changes:**
+               - Commit the applied bug fixes with a clear message:
+                    `git commit -am "fix: add syntax highlighting, gfm callouts, and heading scale"`
+                    4. **Push to Trigger CI:**
+                       - Push the commit to trigger the GitHub Actions build workflow.
+                       
