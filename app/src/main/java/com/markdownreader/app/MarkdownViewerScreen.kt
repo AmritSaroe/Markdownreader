@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.zIndex.zIndex
+import androidx.compose.ui.zIndex
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.viewinterop.AndroidView
 import io.noties.markwon.Markwon
@@ -172,12 +172,16 @@ fun MarkdownViewerScreen(
                             content.startsWith("[!WARNING]") -> androidx.core.graphics.ColorUtils.setAlphaComponent(android.graphics.Color.YELLOW, 40)
                             else -> alpha12Text
                         }
-                        visitor.setSpans(length, io.noties.markwon.core.spans.BlockQuoteSpan(builder.theme().build(), color))
+                        visitor.setSpans(length, android.text.style.QuoteSpan(color))
+                        visitor.setSpans(length, android.text.style.BackgroundColorSpan(color))
                     }
                 }
             })
-            .usePlugin(io.noties.markwon.ext.syntax.SyntaxHighlightPlugin.create(
-                io.noties.prism4j.Prism4j(com.markdownreader.app.GrammarLocatorDef())
+            .usePlugin(io.noties.markwon.syntax.SyntaxHighlightPlugin.create(
+                io.noties.markwon.syntax.Prism4jSyntaxHighlight.create(
+                    io.noties.prism4j.Prism4j(com.markdownreader.app.GrammarLocatorDef()),
+                    io.noties.markwon.syntax.Prism4jThemeDefault.create()
+                )
             ))
             .build()
     }
