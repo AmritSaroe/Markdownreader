@@ -46,6 +46,8 @@ import androidx.compose.ui.Alignment
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
+import kotlinx.coroutines.Dispatchers
+import kotlinx.coroutines.withContext
 
 /**
  * Preprocesses markdown content to ensure MathJax, KaTeX, and LaTeX syntax
@@ -141,62 +143,23 @@ fun MarkdownViewerScreen(
             .build()
     }
 
+    var parsedMarkdown by remember { mutableStateOf<android.text.Spanned?>(null) }
+
+    LaunchedEffect(content, markwon) {
+        withContext(Dispatchers.IO) {
+            val processed = preprocessMarkdown(content)
+            parsedMarkdown = markwon.toMarkdown(processed)
+        }
+    }
+
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets.statusBars,
-        topBar = {
-            AnimatedVisibility(
-                visible = isUiVisible,
-                enter = slideInVertically(initialOffsetY = { -it }),
-                exit = slideOutVertically(targetOffsetY = { -it })
-            ) {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            text = fileName,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
-                            fontSize = 18.sp
-                        )
-                    },
-                    actions = {
-                        IconButton(onClick = {
-                            val nextTheme = when (currentTheme) {
-                                ReadingTheme.LIGHT -> ReadingTheme.SEPIA
-                                ReadingTheme.SEPIA -> ReadingTheme.DARK
-                                ReadingTheme.DARK -> ReadingTheme.LIGHT
-                                ReadingTheme.SYSTEM -> ReadingTheme.SEPIA
-                            }
-                            onThemeChange(nextTheme)
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Palette,
-                                contentDescription = "Toggle reading theme"
-                            )
-                        }
-                        IconButton(onClick = onOpenFile) {
-                            Icon(
-                                imageVector = Icons.Default.FolderOpen,
-                                contentDescription = "Open file"
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = Color.Transparent,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        actionIconContentColor = MaterialTheme.colorScheme.onSurface
-                    )
-                )
-            }
-        }
+        contentWindowInsets = WindowInsets.statusBars
     ) { innerPadding ->
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .padding(innerPadding)
-                .consumeWindowInsets(innerPadding)
         ) {
             
             // Fullscreen content
@@ -238,13 +201,69 @@ fun MarkdownViewerScreen(
                 },
                 update = { scrollView ->
                     val textView = scrollView.getChildAt(0) as TextView
-                    textView.setTextColor(textColor)
-                    textView.setLinkTextColor(linkColor)
-                    scrollView.setBackgroundColor(backgroundColor)
-                    val processed = preprocessMarkdown(content)
-                    markwon.setMarkdown(textView, processed)
+                    
+                    // Only update if text color or background changed (or first time)
+                    if (textView.currentTextColor != textColor) {
+                        textView.setTextColor(textColor)
+                        textView.setLinkTextColor(linkColor)
+                        scrollView.setBackgroundColor(backgroundColor)
+                    }
+                    
+                    // Only set markdown if it changed
+                    if (textView.tag != parsedMarkdown) {
+                        textView.tag = parsedMarkdown
+                        parsedMarkdown?.let { 
+                            markwon.setParsedMarkdown(textView, it)
+                        }
+                    }
                 }
             )
+
+            AnimatedVisibility(
+                visible = isUiVisible,
+                enter = slideInVertically(initialOffsetY = { -it }),
+                exit = slideOutVertically(targetOffsetY = { -it }),
+                modifier = Modifier.align(Alignment.TopCenter)
+            ) {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = fileName,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                            fontSize = 18.sp
+                        )
+                    },
+                    actions = {
+                        IconButton(onClick = {
+                            val nextTheme = when (currentTheme) {
+                                ReadingTheme.LIGHT -> ReadingTheme.SEPIA
+                                ReadingTheme.SEPIA -> ReadingTheme.DARK
+                                ReadingTheme.DARK -> ReadingTheme.LIGHT
+                                ReadingTheme.SYSTEM -> ReadingTheme.SEPIA
+                            }
+                            onThemeChange(nextTheme)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Palette,
+                                contentDescription = "Toggle reading theme"
+                            )
+                        }
+                        IconButton(onClick = onOpenFile) {
+                            Icon(
+                                imageVector = Icons.Default.FolderOpen,
+                                contentDescription = "Open file"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        actionIconContentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+            }
         }
     }
 }
