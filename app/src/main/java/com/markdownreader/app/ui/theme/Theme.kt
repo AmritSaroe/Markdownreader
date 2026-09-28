@@ -53,13 +53,43 @@ private val DarkColorScheme = darkColorScheme(
     onError = md_theme_dark_onError
 )
 
+private val SepiaColorScheme = lightColorScheme(
+    primary = md_theme_sepia_primary,
+    onPrimary = md_theme_sepia_onPrimary,
+    primaryContainer = md_theme_sepia_primaryContainer,
+    onPrimaryContainer = md_theme_sepia_onPrimaryContainer,
+    secondary = md_theme_sepia_secondary,
+    onSecondary = md_theme_sepia_onSecondary,
+    secondaryContainer = md_theme_sepia_secondaryContainer,
+    onSecondaryContainer = md_theme_sepia_onSecondaryContainer,
+    background = md_theme_sepia_background,
+    onBackground = md_theme_sepia_onBackground,
+    surface = md_theme_sepia_surface,
+    onSurface = md_theme_sepia_onSurface,
+    surfaceVariant = md_theme_sepia_surfaceVariant,
+    onSurfaceVariant = md_theme_sepia_onSurfaceVariant,
+    error = md_theme_sepia_error,
+    onError = md_theme_sepia_onError
+)
+
+enum class ReadingTheme {
+    SYSTEM, LIGHT, DARK, SEPIA
+}
+
 @Composable
 fun MarkdownReaderTheme(
-    darkTheme: Boolean = isSystemInDarkTheme(),
+    readingTheme: ReadingTheme = ReadingTheme.SYSTEM,
     dynamicColor: Boolean = true,
     content: @Composable () -> Unit
 ) {
+    val darkTheme = when (readingTheme) {
+        ReadingTheme.SYSTEM -> isSystemInDarkTheme()
+        ReadingTheme.DARK -> true
+        else -> false
+    }
+
     val colorScheme = when {
+        readingTheme == ReadingTheme.SEPIA -> SepiaColorScheme
         dynamicColor && Build.VERSION.SDK_INT >= Build.VERSION_CODES.S -> {
             val context = LocalContext.current
             if (darkTheme) dynamicDarkColorScheme(context) else dynamicLightColorScheme(context)

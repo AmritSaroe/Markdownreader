@@ -11,9 +11,14 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 
+import androidx.compose.material.icons.filled.Palette
+import com.markdownreader.app.ui.theme.ReadingTheme
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun WelcomeScreen(
+    currentTheme: ReadingTheme,
+    onThemeChange: (ReadingTheme) -> Unit,
     onOpenFile: () -> Unit,
     errorMessage: String? = null
 ) {
@@ -21,6 +26,22 @@ fun WelcomeScreen(
         topBar = {
             LargeTopAppBar(
                 title = { Text("Markdown Reader") },
+                actions = {
+                    IconButton(onClick = {
+                        val nextTheme = when (currentTheme) {
+                            ReadingTheme.LIGHT -> ReadingTheme.SEPIA
+                            ReadingTheme.SEPIA -> ReadingTheme.DARK
+                            ReadingTheme.DARK -> ReadingTheme.LIGHT
+                            ReadingTheme.SYSTEM -> ReadingTheme.SEPIA
+                        }
+                        onThemeChange(nextTheme)
+                    }) {
+                        Icon(
+                            imageVector = Icons.Default.Palette,
+                            contentDescription = "Toggle reading theme"
+                        )
+                    }
+                },
                 colors = TopAppBarDefaults.largeTopAppBarColors(
                     containerColor = MaterialTheme.colorScheme.surface,
                     titleContentColor = MaterialTheme.colorScheme.onSurface

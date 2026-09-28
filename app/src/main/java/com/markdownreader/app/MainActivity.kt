@@ -15,23 +15,25 @@ import com.markdownreader.app.ui.theme.MarkdownReaderTheme
 import java.io.BufferedReader
 import java.io.InputStreamReader
 
+import android.content.Context
+import com.markdownreader.app.ui.theme.ReadingTheme
+
 class MainActivity : ComponentActivity() {
 
     private var currentContent by mutableStateOf<String?>(null)
     private var currentFileName by mutableStateOf("Markdown Reader")
     private var errorMessage by mutableStateOf<String?>(null)
+    private var currentTheme by mutableStateOf(ReadingTheme.SYSTEM)
 
     private val openDocumentLauncher = registerForActivityResult(
         ActivityResultContracts.OpenDocument()
     ) { uri ->
         if (uri != null) {
-            // Take persistable permission so we can re-read if needed
             try {
                 contentResolver.takePersistableUriPermission(
                     uri, Intent.FLAG_GRANT_READ_URI_PERMISSION
                 )
             } catch (_: SecurityException) {
-                // Not all providers support persistable permissions
             }
             handleUri(uri)
         }
@@ -40,19 +42,39 @@ class MainActivity : ComponentActivity() {
     override fun onCreate(savedInstanceState: Bundle?) {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
+        
+        val prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
+        val savedTheme = prefs.getString("theme", ReadingTheme.SYSTEM.name) ?: ReadingTheme.SYSTEM.name
+        currentTheme = try { ReadingTheme.valueOf(savedTheme) } catch (e: Exception) { ReadingTheme.SYSTEM }
+        
         handleIntent(intent)
 
         setContent {
-            MarkdownReaderTheme {
+            MarkdownReaderTheme(
+                readingTheme = currentTheme,
+                dynamicColor = false // Disable dynamic color to strictly use our optimized reading colors
+            ) {
                 val content = currentContent
                 if (content != null) {
                     MarkdownViewerScreen(
                         fileName = currentFileName,
                         content = content,
+                        currentTheme = currentTheme,
+                        onThemeChange = { newTheme ->
+                            currentTheme = newTheme
+                            getSharedPreferences("settings", Context.MODE_PRIVATE)
+                                .edit().putString("theme", newTheme.name).apply()
+                        },
                         onOpenFile = { openFilePicker() }
                     )
                 } else {
                     WelcomeScreen(
+                        currentTheme = currentTheme,
+                        onThemeChange = { newTheme ->
+                            currentTheme = newTheme
+                            getSharedPreferences("settings", Context.MODE_PRIVATE)
+                                .edit().putString("theme", newTheme.name).apply()
+                        },
                         onOpenFile = { openFilePicker() },
                         errorMessage = errorMessage
                     )

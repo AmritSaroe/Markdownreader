@@ -17,6 +17,8 @@ import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.filled.Palette
+import com.markdownreader.app.ui.theme.ReadingTheme
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.Icon
 import androidx.compose.material3.IconButton
@@ -60,6 +62,8 @@ private fun Color.toHex(): String =
 fun MarkdownViewerScreen(
     fileName: String,
     content: String,
+    currentTheme: ReadingTheme,
+    onThemeChange: (ReadingTheme) -> Unit,
     onOpenFile: () -> Unit
 ) {
     val context = LocalContext.current
@@ -184,6 +188,20 @@ fun MarkdownViewerScreen(
                         )
                     },
                     actions = {
+                        IconButton(onClick = {
+                            val nextTheme = when (currentTheme) {
+                                ReadingTheme.LIGHT -> ReadingTheme.SEPIA
+                                ReadingTheme.SEPIA -> ReadingTheme.DARK
+                                ReadingTheme.DARK -> ReadingTheme.LIGHT
+                                ReadingTheme.SYSTEM -> ReadingTheme.SEPIA
+                            }
+                            onThemeChange(nextTheme)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Palette,
+                                contentDescription = "Toggle reading theme"
+                            )
+                        }
                         IconButton(onClick = onOpenFile) {
                             Icon(
                                 imageVector = Icons.Default.FolderOpen,
