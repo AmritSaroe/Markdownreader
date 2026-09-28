@@ -108,8 +108,10 @@ fun MarkdownReaderTheme(
             }
             val window = (context as? Activity)?.window
             if (window != null) {
-                window.statusBarColor = colorScheme.primaryContainer.toArgb()
+                window.statusBarColor = android.graphics.Color.TRANSPARENT
+                window.navigationBarColor = android.graphics.Color.TRANSPARENT
                 WindowCompat.getInsetsController(window, view).isAppearanceLightStatusBars = !darkTheme
+                WindowCompat.getInsetsController(window, view).isAppearanceLightNavigationBars = !darkTheme
             }
         }
     }

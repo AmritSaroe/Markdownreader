@@ -73,7 +73,7 @@ fun MarkdownViewerScreen(
     onOpenFile: () -> Unit
 ) {
     val context = LocalContext.current
-    val textColor = MaterialTheme.colorScheme.onBackground.toArgb()
+    val textColor = MaterialTheme.colorScheme.onSurface.toArgb()
     val linkColor = MaterialTheme.colorScheme.primary.toArgb()
     val backgroundColor = MaterialTheme.colorScheme.background.toArgb()
 
@@ -118,6 +118,22 @@ fun MarkdownViewerScreen(
                 builder.theme().inlineBackgroundProvider { android.graphics.drawable.ColorDrawable(backgroundColor) }
                 builder.errorHandler { _, _ -> null }
             })
+            .usePlugin(object : io.noties.markwon.AbstractMarkwonPlugin() {
+                override fun configureTheme(builder: io.noties.markwon.core.MarkwonTheme.Builder) {
+                    val density = context.resources.displayMetrics.density
+                    val alpha12Text = androidx.core.graphics.ColorUtils.setAlphaComponent(textColor, 31) // ~12%
+                    val alpha5Text = androidx.core.graphics.ColorUtils.setAlphaComponent(textColor, 13)  // ~5%
+                    builder
+                        .headingBreakHeight(0)
+                        .thematicBreakHeight((1 * density).toInt())
+                        .thematicBreakColor(alpha12Text)
+                        .headingTextSizeMultipliers(floatArrayOf(1.5f, 1.3f, 1.15f, 1.0f, 0.9f, 0.8f))
+                        .blockMargin((14 * density).toInt())
+                        .codeBackgroundColor(alpha5Text)
+                        .codeBlockBackgroundColor(alpha5Text)
+                        .codeTextSize((15 * context.resources.displayMetrics.scaledDensity).toInt())
+                }
+            })
             .build()
     }
 
@@ -125,7 +141,7 @@ fun MarkdownViewerScreen(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Box(modifier = Modifier.fillMaxSize()) {
+        Box(modifier = Modifier.fillMaxSize().androidx.compose.foundation.layout.systemBarsPadding()) {
             
             // Fullscreen content
             AndroidView(
@@ -155,9 +171,9 @@ fun MarkdownViewerScreen(
                                 setTextColor(textColor)
                                 setLinkTextColor(linkColor)
                                 textSize = 17f
-                                setLineSpacing(12f, 1.4f)
-                                val padHoriz = (24 * ctx.resources.displayMetrics.density).toInt()
-                                val padVert = (48 * ctx.resources.displayMetrics.density).toInt()
+                                setLineSpacing(0f, 1.35f)
+                                val padHoriz = (22 * ctx.resources.displayMetrics.density).toInt()
+                                val padVert = (16 * ctx.resources.displayMetrics.density).toInt()
                                 setPadding(padHoriz, padVert, padHoriz, padVert * 2)
                                 setOnClickListener(clickListener)
                             }
