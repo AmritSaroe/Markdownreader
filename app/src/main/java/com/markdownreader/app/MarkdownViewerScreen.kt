@@ -34,6 +34,9 @@ import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
+import androidx.compose.foundation.layout.WindowInsets
+import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
@@ -138,11 +141,63 @@ fun MarkdownViewerScreen(
             .build()
     }
 
-    Surface(
+    Scaffold(
         modifier = Modifier.fillMaxSize(),
-        color = MaterialTheme.colorScheme.background
-    ) {
-        Box(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
+        containerColor = MaterialTheme.colorScheme.background,
+        contentWindowInsets = WindowInsets.statusBars,
+        topBar = {
+            AnimatedVisibility(
+                visible = isUiVisible,
+                enter = slideInVertically(initialOffsetY = { -it }),
+                exit = slideOutVertically(targetOffsetY = { -it })
+            ) {
+                CenterAlignedTopAppBar(
+                    title = {
+                        Text(
+                            text = fileName,
+                            maxLines = 1,
+                            overflow = TextOverflow.Ellipsis,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                            fontSize = 18.sp
+                        )
+                    },
+                    actions = {
+                        IconButton(onClick = {
+                            val nextTheme = when (currentTheme) {
+                                ReadingTheme.LIGHT -> ReadingTheme.SEPIA
+                                ReadingTheme.SEPIA -> ReadingTheme.DARK
+                                ReadingTheme.DARK -> ReadingTheme.LIGHT
+                                ReadingTheme.SYSTEM -> ReadingTheme.SEPIA
+                            }
+                            onThemeChange(nextTheme)
+                        }) {
+                            Icon(
+                                imageVector = Icons.Default.Palette,
+                                contentDescription = "Toggle reading theme"
+                            )
+                        }
+                        IconButton(onClick = onOpenFile) {
+                            Icon(
+                                imageVector = Icons.Default.FolderOpen,
+                                contentDescription = "Open file"
+                            )
+                        }
+                    },
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        actionIconContentColor = MaterialTheme.colorScheme.onSurface
+                    )
+                )
+            }
+        }
+    ) { innerPadding ->
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .padding(innerPadding)
+                .consumeWindowInsets(innerPadding)
+        ) {
             
             // Fullscreen content
             AndroidView(
@@ -190,54 +245,6 @@ fun MarkdownViewerScreen(
                     markwon.setMarkdown(textView, processed)
                 }
             )
-
-            // Overlay TopAppBar
-            // Overlay TopAppBar
-            AnimatedVisibility(
-                visible = isUiVisible,
-                enter = slideInVertically(initialOffsetY = { -it }),
-                exit = slideOutVertically(targetOffsetY = { -it }),
-                modifier = Modifier.align(Alignment.TopCenter)
-            ) {
-                CenterAlignedTopAppBar(
-                    title = {
-                        Text(
-                            text = fileName,
-                            maxLines = 1,
-                            overflow = TextOverflow.Ellipsis,
-                            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
-                            fontSize = 18.sp
-                        )
-                    },
-                    actions = {
-                        IconButton(onClick = {
-                            val nextTheme = when (currentTheme) {
-                                ReadingTheme.LIGHT -> ReadingTheme.SEPIA
-                                ReadingTheme.SEPIA -> ReadingTheme.DARK
-                                ReadingTheme.DARK -> ReadingTheme.LIGHT
-                                ReadingTheme.SYSTEM -> ReadingTheme.SEPIA
-                            }
-                            onThemeChange(nextTheme)
-                        }) {
-                            Icon(
-                                imageVector = Icons.Default.Palette,
-                                contentDescription = "Toggle reading theme"
-                            )
-                        }
-                        IconButton(onClick = onOpenFile) {
-                            Icon(
-                                imageVector = Icons.Default.FolderOpen,
-                                contentDescription = "Open file"
-                            )
-                        }
-                    },
-                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = Color.Transparent,
-                        titleContentColor = MaterialTheme.colorScheme.onSurface,
-                        actionIconContentColor = MaterialTheme.colorScheme.onSurface
-                    )
-                )
-            }
         }
     }
 }
