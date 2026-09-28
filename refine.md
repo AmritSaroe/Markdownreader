@@ -1,27 +1,6 @@
-# Bug Fix: Resolve Toolbar & Document Header Overlap and Inset Issues
+Fix the compilation error in MarkdownViewerScreen.kt:
 
-Looking at the current screen, the top action bar (containing the filename, theme toggle, and folder picker) is rendering directly over the Markdown document's H1 title. The top bar is also colliding with the top edge of the display.
-
----
-
-### 1. Fix Layout Overlap
-
-#### If Using Jetpack Compose:
-- Locate the main screen's `Scaffold`.
-- Ensure the lambda's `innerPadding` / `paddingValues` is passed to the content:
-  ```kotlin
-    Scaffold(
-    	      topBar = { TopAppBar(...) },
-    	            contentWindowInsets = WindowInsets.statusBars
-    	              ) { innerPadding ->
-    	                    Box(modifier = Modifier
-    	                              .fillMaxSize()
-    	                                        .padding(innerPadding) // <-- Fix: ensure content starts BELOW the topBar
-    	                                                  .consumeWindowInsets(innerPadding)
-    	                                                        ) {
-    	                                                        	          // Markdown View / Content
-    	                                                        	                }
-    	                                                        	                  }
-    	                                                        	                  
-    	                                                        }}
-    )
+1. In `app/src/main/java/com/markdownreader/app/MarkdownViewerScreen.kt`:
+   - Replace `import androidx.compose.ui.zIndex` with `import androidx.compose.ui.layout.zIndex`.
+   2. Run `./gradlew assembleDebug` to verify that the build succeeds cleanly.
+   
