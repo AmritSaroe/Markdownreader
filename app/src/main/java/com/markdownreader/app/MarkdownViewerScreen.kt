@@ -178,10 +178,8 @@ fun MarkdownViewerScreen(
                 }
             })
             .usePlugin(io.noties.markwon.syntax.SyntaxHighlightPlugin.create(
-                io.noties.markwon.syntax.Prism4jSyntaxHighlight.create(
-                    io.noties.prism4j.Prism4j(com.markdownreader.app.GrammarLocatorDef()),
-                    io.noties.markwon.syntax.Prism4jThemeDefault.create()
-                )
+                io.noties.prism4j.Prism4j(com.markdownreader.app.GrammarLocatorDef()),
+                io.noties.markwon.syntax.Prism4jThemeDefault.create()
             ))
             .build()
     }
