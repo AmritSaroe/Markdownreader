@@ -21,7 +21,7 @@ import com.markdownreader.app.ui.theme.ReadingTheme
 class MainActivity : ComponentActivity() {
 
     private var currentContent by mutableStateOf<String?>(null)
-    private var currentFileName by mutableStateOf("Markdown Reader")
+    private var currentFileName by mutableStateOf("Marko")
     private var errorMessage by mutableStateOf<String?>(null)
     private var currentTheme by mutableStateOf(ReadingTheme.SYSTEM)
 

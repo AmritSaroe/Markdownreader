@@ -4,7 +4,7 @@ import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.outlined.AutoStories
+
 import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
@@ -66,17 +66,17 @@ fun WelcomeScreen(
             ) {
                 // Subtle elegant icon
                 Icon(
-                    imageVector = Icons.Outlined.AutoStories,
+                    imageVector = MarkoIcon,
                     contentDescription = null,
                     modifier = Modifier.size(72.dp),
-                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                    tint = MaterialTheme.colorScheme.onBackground
                 )
 
                 Spacer(modifier = Modifier.height(32.dp))
 
                 // Aesthetic Title
                 Text(
-                    text = "Aesthetic Reader",
+                    text = "Marko",
                     fontSize = 28.sp,
                     fontWeight = FontWeight.Light,
                     letterSpacing = 1.5.sp,

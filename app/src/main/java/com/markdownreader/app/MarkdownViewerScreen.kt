@@ -19,7 +19,7 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.zIndex
+import androidx.compose.ui.zIndex.zIndex
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.viewinterop.AndroidView
 import io.noties.markwon.Markwon
@@ -65,6 +65,8 @@ private fun preprocessMarkdown(input: String): String {
     result = result.replace(Regex("""\\\((.*?)\\\)""")) { match ->
         "$" + match.groupValues[1].trim() + "$"
     }
+    // 3. Fix Task List Checkbox Spacing: add a non-breaking space after the checkbox
+    result = result.replace(Regex("""^(\s*[-*+]\s*\[[xX ]\])\s+(?=\S)""", RegexOption.MULTILINE), "$1 \u00A0")
     return result
 }
 

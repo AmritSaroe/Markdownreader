@@ -1,19 +1,15 @@
-# Workflow Adjustment: Termux & GitHub Actions CI
+# Complete Remaining Markdown Fixes
 
-Do not run `./gradlew` locally. This project compiles exclusively via GitHub Actions CI from a Termux development environment.
+The previous changes addressed syntax highlighting, headings, and callouts, but missed several core extensions and list layout bugs:
 
----
+1. **Add Missing Markwon Plugins (`build.gradle.kts`):**
+   - Add `implementation("io.noties.markwon:ext-strikethrough:4.6.2")`
+      - Add `implementation("io.noties.markwon:html:4.6.2")`
+         - Register `StrikethroughPlugin.create()` and `HtmlPlugin.create()` inside the Markwon builder in `MarkdownViewerScreen.kt`.
 
-### Instructions:
-1. **Check Wrapper in Git:**
-   - Run `git status` or `git log -1 -- gradlew` to verify whether `gradlew` and `gradle/wrapper/gradle-wrapper.properties` exist in git tracking or were accidentally removed.
-      - If `gradlew` exists in git, restore it (`git checkout HEAD -- gradlew gradle/`).
-         - If it was never added, keep our code changes ready and do not attempt to invoke a local build.
-         2. **Review Code Modifications:**
-            - Verify that all changes in `build.gradle.kts` (Prism4j, syntax highlighting, kapt/plugins) and `MarkdownViewerScreen.kt` (headings, callout visitor) are cleanly formatted with no syntax errors.
-            3. **Commit Changes:**
-               - Commit the applied bug fixes with a clear message:
-                    `git commit -am "fix: add syntax highlighting, gfm callouts, and heading scale"`
-                    4. **Push to Trigger CI:**
-                       - Push the commit to trigger the GitHub Actions build workflow.
-                       
+         2. **Fix Task List Checkbox Spacing:**
+            - If using `TaskListPlugin`, configure the task list drawable/span or add a trailing space/padding so `[x] Text` does not glue the checkbox directly against the first letter (`☑Text` -> `☑ Text`).
+
+            3. **Verify Underscore Parsing:**
+               - Verify why `__bold__` and `_italic_` failed to render. Check if any text-sanitization or regex replacement is escaping or stripping `_` characters before passing the string to Markwon.
+               
