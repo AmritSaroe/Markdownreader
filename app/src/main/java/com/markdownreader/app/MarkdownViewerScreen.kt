@@ -19,6 +19,8 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.platform.LocalDensity
+import androidx.compose.ui.zIndex.zIndex
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.viewinterop.AndroidView
 import io.noties.markwon.Markwon
@@ -155,75 +157,13 @@ fun MarkdownViewerScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets.statusBars
-    ) { innerPadding ->
-        Box(
-            modifier = Modifier
-                .fillMaxSize()
-        ) {
-            
-            // Fullscreen content
-            AndroidView(
-                modifier = Modifier.fillMaxSize(),
-                factory = { ctx ->
-                    androidx.core.widget.NestedScrollView(ctx).apply {
-                        isNestedScrollingEnabled = true
-                        layoutParams = ViewGroup.LayoutParams(
-                            ViewGroup.LayoutParams.MATCH_PARENT,
-                            ViewGroup.LayoutParams.MATCH_PARENT
-                        )
-                        setBackgroundColor(backgroundColor)
-                        
-                        val clickListener = android.view.View.OnClickListener {
-                            isUiVisible = !isUiVisible
-                        }
-                        setOnClickListener(clickListener)
-
-                        addView(
-                            TextView(ctx).apply {
-                                layoutParams = ViewGroup.LayoutParams(
-                                    ViewGroup.LayoutParams.MATCH_PARENT,
-                                    ViewGroup.LayoutParams.WRAP_CONTENT
-                                )
-                                setTextIsSelectable(true)
-                                movementMethod = LinkMovementMethod.getInstance()
-                                setTextColor(textColor)
-                                setLinkTextColor(linkColor)
-                                textSize = 17f
-                                setLineSpacing(0f, 1.35f)
-                                val padHoriz = (22 * ctx.resources.displayMetrics.density).toInt()
-                                val padVert = (16 * ctx.resources.displayMetrics.density).toInt()
-                                setPadding(padHoriz, padVert, padHoriz, padVert * 2)
-                                setOnClickListener(clickListener)
-                            }
-                        )
-                    }
-                },
-                update = { scrollView ->
-                    val textView = scrollView.getChildAt(0) as TextView
-                    
-                    // Only update if text color or background changed (or first time)
-                    if (textView.currentTextColor != textColor) {
-                        textView.setTextColor(textColor)
-                        textView.setLinkTextColor(linkColor)
-                        scrollView.setBackgroundColor(backgroundColor)
-                    }
-                    
-                    // Only set markdown if it changed
-                    if (textView.tag != parsedMarkdown) {
-                        textView.tag = parsedMarkdown
-                        parsedMarkdown?.let { 
-                            markwon.setParsedMarkdown(textView, it)
-                        }
-                    }
-                }
-            )
-
+        contentWindowInsets = WindowInsets.statusBars,
+        topBar = {
             AnimatedVisibility(
                 visible = isUiVisible,
                 enter = slideInVertically(initialOffsetY = { -it }),
                 exit = slideOutVertically(targetOffsetY = { -it }),
-                modifier = Modifier.align(Alignment.TopCenter)
+                modifier = Modifier.zIndex(2f)
             ) {
                 CenterAlignedTopAppBar(
                     title = {
@@ -258,12 +198,83 @@ fun MarkdownViewerScreen(
                         }
                     },
                     colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.background.copy(alpha = 0.9f),
+                        containerColor = MaterialTheme.colorScheme.surface,
                         titleContentColor = MaterialTheme.colorScheme.onSurface,
                         actionIconContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }
+        }
+    ) { innerPadding ->
+        val density = LocalDensity.current
+        
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+        ) {
+            
+            // Fullscreen content
+            AndroidView(
+                modifier = Modifier.fillMaxSize(),
+                factory = { ctx ->
+                    androidx.core.widget.NestedScrollView(ctx).apply {
+                        isNestedScrollingEnabled = true
+                        clipToPadding = false
+                        layoutParams = ViewGroup.LayoutParams(
+                            ViewGroup.LayoutParams.MATCH_PARENT,
+                            ViewGroup.LayoutParams.MATCH_PARENT
+                        )
+                        setBackgroundColor(backgroundColor)
+                        
+                        val clickListener = android.view.View.OnClickListener {
+                            isUiVisible = !isUiVisible
+                        }
+                        setOnClickListener(clickListener)
+
+                        addView(
+                            TextView(ctx).apply {
+                                layoutParams = ViewGroup.LayoutParams(
+                                    ViewGroup.LayoutParams.MATCH_PARENT,
+                                    ViewGroup.LayoutParams.WRAP_CONTENT
+                                )
+                                setTextIsSelectable(true)
+                                movementMethod = LinkMovementMethod.getInstance()
+                                setTextColor(textColor)
+                                setLinkTextColor(linkColor)
+                                textSize = 17f
+                                setLineSpacing(0f, 1.35f)
+                                val padHoriz = (22 * ctx.resources.displayMetrics.density).toInt()
+                                val padVert = (16 * ctx.resources.displayMetrics.density).toInt()
+                                setPadding(padHoriz, padVert, padHoriz, padVert * 2)
+                                setOnClickListener(clickListener)
+                            }
+                        )
+                    }
+                },
+                update = { scrollView ->
+                    val textView = scrollView.getChildAt(0) as TextView
+                    
+                    // Apply inner padding to allow content to slide behind toolbar
+                    val topPaddingPx = with(density) { innerPadding.calculateTopPadding().toPx().toInt() }
+                    val bottomPaddingPx = with(density) { innerPadding.calculateBottomPadding().toPx().toInt() }
+                    scrollView.setPadding(0, topPaddingPx, 0, bottomPaddingPx)
+                    
+                    // Only update if text color or background changed (or first time)
+                    if (textView.currentTextColor != textColor) {
+                        textView.setTextColor(textColor)
+                        textView.setLinkTextColor(linkColor)
+                        scrollView.setBackgroundColor(backgroundColor)
+                    }
+                    
+                    // Only set markdown if it changed
+                    if (textView.tag != parsedMarkdown) {
+                        textView.tag = parsedMarkdown
+                        parsedMarkdown?.let { 
+                            markwon.setParsedMarkdown(textView, it)
+                        }
+                    }
+                }
+            )
         }
     }
 }
