@@ -43,6 +43,12 @@ class MainActivity : ComponentActivity() {
         super.onCreate(savedInstanceState)
         enableEdgeToEdge()
         
+        if (android.os.Build.VERSION.SDK_INT >= android.os.Build.VERSION_CODES.P) {
+            val attributes = window.attributes
+            attributes.layoutInDisplayCutoutMode = android.view.WindowManager.LayoutParams.LAYOUT_IN_DISPLAY_CUTOUT_MODE_SHORT_EDGES
+            window.attributes = attributes
+        }
+        
         val prefs = getSharedPreferences("settings", Context.MODE_PRIVATE)
         val savedTheme = prefs.getString("theme", ReadingTheme.SYSTEM.name) ?: ReadingTheme.SYSTEM.name
         currentTheme = try { ReadingTheme.valueOf(savedTheme) } catch (e: Exception) { ReadingTheme.SYSTEM }
