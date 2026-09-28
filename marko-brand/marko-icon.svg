@@ -1,7 +1,0 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 512 512" width="512" height="512" role="img" aria-label="Marko">
-  <title>Marko</title>
-  <rect width="512" height="512" rx="116" ry="116" fill="#18181B"/>
-  <rect x="132" y="150" width="52" height="212" rx="10" fill="#FFFFFF"/>
-  <rect x="328" y="150" width="52" height="212" rx="10" fill="#FFFFFF"/>
-  <path d="M184 190 L256 288 L328 190" fill="none" stroke="#FFFFFF" stroke-width="52" stroke-linecap="round" stroke-linejoin="round"/>
-</svg>
