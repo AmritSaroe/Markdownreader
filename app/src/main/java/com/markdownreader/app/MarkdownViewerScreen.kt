@@ -1,62 +1,66 @@
 package com.markdownreader.app
 
-import android.annotation.SuppressLint
-import android.app.Activity
-import android.content.Context
-import android.content.ContextWrapper
-import android.content.Intent
+import androidx.compose.material.icons.filled.Palette
+import com.markdownreader.app.ui.theme.ReadingTheme
+import android.text.method.LinkMovementMethod
 import android.view.ViewGroup
-import android.webkit.JavascriptInterface
-import android.webkit.WebResourceRequest
-import android.webkit.WebView
-import android.webkit.WebViewClient
+import android.widget.ScrollView
+import android.widget.TextView
+import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.padding
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material3.*
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.remember
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.text.style.TextOverflow
+import androidx.compose.ui.viewinterop.AndroidView
+import io.noties.markwon.Markwon
+import io.noties.markwon.SoftBreakAddsNewLinePlugin
+import io.noties.markwon.ext.latex.JLatexMathPlugin
+import io.noties.markwon.ext.strikethrough.StrikethroughPlugin
+import io.noties.markwon.ext.tables.TablePlugin
+import io.noties.markwon.ext.tasklist.TaskListPlugin
+import io.noties.markwon.html.HtmlPlugin
+import io.noties.markwon.linkify.LinkifyPlugin
+import android.app.Activity
 import androidx.compose.animation.AnimatedVisibility
 import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.FolderOpen
-import androidx.compose.material.icons.filled.Palette
-import com.markdownreader.app.ui.theme.ReadingTheme
-import androidx.compose.material3.ExperimentalMaterial3Api
-import androidx.compose.material3.Icon
-import androidx.compose.material3.IconButton
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TopAppBar
-import androidx.compose.material3.TopAppBarDefaults
-import androidx.compose.runtime.Composable
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.rememberUpdatedState
 import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
-import androidx.compose.ui.Modifier
-import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.graphics.toArgb
-import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalView
-import androidx.compose.ui.text.style.TextOverflow
-import androidx.compose.ui.viewinterop.AndroidView
 import androidx.core.view.WindowCompat
 import androidx.core.view.WindowInsetsCompat
 import androidx.core.view.WindowInsetsControllerCompat
 
-tailrec fun Context.findActivity(): Activity? = when (this) {
-    is Activity -> this
-    is ContextWrapper -> baseContext.findActivity()
-    else -> null
+/**
+ * Preprocesses markdown content to ensure MathJax, KaTeX, and LaTeX syntax
+ * are standardized for the Markwon renderer:
+ * - Converts MathJax block syntax `\[ ... \]` to `$$ ... $$`
+ * - Converts MathJax inline syntax `\( ... \)` to `$ ... $`
+ */
+private fun preprocessMarkdown(input: String): String {
+    // 1. Convert MathJax display blocks \[ ... \] to $$ ... $$
+    var result = input.replace(Regex("""(?s)\\\[(.*?)\\\]""")) { match ->
+        "\n$$\n" + match.groupValues[1].trim() + "\n$$\n"
+    }
+    // 2. Convert MathJax inline math \( ... \) to $ ... $
+    result = result.replace(Regex("""\\\((.*?)\\\)""")) { match ->
+        "$" + match.groupValues[1].trim() + "$"
+    }
+    return result
 }
 
-private fun Color.toHex(): String =
-    String.format("#%06X", 0xFFFFFF and toArgb())
 
-@SuppressLint("SetJavaScriptEnabled")
+
 @OptIn(ExperimentalMaterial3Api::class)
 @Composable
 fun MarkdownViewerScreen(
@@ -67,108 +71,104 @@ fun MarkdownViewerScreen(
     onOpenFile: () -> Unit
 ) {
     val context = LocalContext.current
+    val textColor = MaterialTheme.colorScheme.onBackground.toArgb()
+    val linkColor = MaterialTheme.colorScheme.primary.toArgb()
+    val backgroundColor = MaterialTheme.colorScheme.background.toArgb()
 
-    // Theme colors
-    val background = MaterialTheme.colorScheme.background
-    val bgArgb = background.toArgb()
-    val textColorHex = MaterialTheme.colorScheme.onBackground.toHex()
-    val bgColorHex = background.toHex()
-    val linkColorHex = MaterialTheme.colorScheme.primary.toHex()
-    val codeBgHex = MaterialTheme.colorScheme.surfaceVariant.toHex()
-    val borderColorHex = MaterialTheme.colorScheme.outlineVariant.toHex()
-
-    // Keep latest content accessible from the JS interface (created once in factory)
-    val currentContent by rememberUpdatedState(content)
-
-    // Immersive mode
     var isUiVisible by remember { mutableStateOf(false) }
-    val view = LocalView.current
-    val window = context.findActivity()?.window
-    val insetsController = remember(window, view) {
-        window?.let { WindowCompat.getInsetsController(it, view) }
-    }
+    
+    val window = (context as Activity).window
+    val view = androidx.compose.ui.platform.LocalView.current
+    val insetsController = remember(window) { WindowCompat.getInsetsController(window, view) }
 
+    // Toggle immersive mode based on UI visibility
     LaunchedEffect(isUiVisible) {
         if (isUiVisible) {
-            insetsController?.show(WindowInsetsCompat.Type.systemBars())
+            insetsController.show(WindowInsetsCompat.Type.systemBars())
         } else {
-            insetsController?.hide(WindowInsetsCompat.Type.systemBars())
-            insetsController?.systemBarsBehavior =
-                WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
+            insetsController.hide(WindowInsetsCompat.Type.systemBars())
+            insetsController.systemBarsBehavior = WindowInsetsControllerCompat.BEHAVIOR_SHOW_TRANSIENT_BARS_BY_SWIPE
         }
     }
 
+    // Ensure system bars are shown when leaving this screen
     DisposableEffect(Unit) {
         onDispose {
-            insetsController?.show(WindowInsetsCompat.Type.systemBars())
+            insetsController.show(WindowInsetsCompat.Type.systemBars())
         }
     }
 
-    // Track when the WebView template + CDN scripts have fully loaded
-    var pageReady by remember { mutableStateOf(false) }
+    val markwon = remember(context, textColor, backgroundColor) {
+        val textSizePx = 16f * context.resources.displayMetrics.scaledDensity
+        Markwon.builder(context)
+            .usePlugin(io.noties.markwon.inlineparser.MarkwonInlineParserPlugin.create())
+            .usePlugin(TablePlugin.create(context))
+            .usePlugin(StrikethroughPlugin.create())
+            .usePlugin(TaskListPlugin.create(context))
+            .usePlugin(HtmlPlugin.create())
+            .usePlugin(LinkifyPlugin.create())
+            .usePlugin(SoftBreakAddsNewLinePlugin.create())
+            .usePlugin(JLatexMathPlugin.create(textSizePx) { builder ->
+                builder.inlinesEnabled(true)
+                builder.blocksEnabled(true)
+                builder.theme().textColor(textColor)
+                builder.theme().blockBackground(backgroundColor)
+                builder.theme().inlineBackground(backgroundColor)
+                builder.errorHandler { _, _ -> null }
+            })
+            .build()
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = background
+        color = MaterialTheme.colorScheme.background
     ) {
         Box(modifier = Modifier.fillMaxSize()) {
+            
+            // Fullscreen content
             AndroidView(
                 modifier = Modifier.fillMaxSize(),
                 factory = { ctx ->
-                    WebView(ctx).apply {
+                    androidx.core.widget.NestedScrollView(ctx).apply {
+                        isNestedScrollingEnabled = true
                         layoutParams = ViewGroup.LayoutParams(
                             ViewGroup.LayoutParams.MATCH_PARENT,
                             ViewGroup.LayoutParams.MATCH_PARENT
                         )
-                        setBackgroundColor(bgArgb)
-
-                        settings.javaScriptEnabled = true
-                        settings.domStorageEnabled = true
-
-                        addJavascriptInterface(object {
-                            @JavascriptInterface
-                            fun getContent(): String = currentContent
-
-                            @JavascriptInterface
-                            fun onContentTapped() {
-                                post { isUiVisible = !isUiVisible }
-                            }
-
-                            @JavascriptInterface
-                            fun onPageReady() {
-                                post { pageReady = true }
-                            }
-                        }, "Android")
-
-                        webViewClient = object : WebViewClient() {
-                            override fun shouldOverrideUrlLoading(
-                                view: WebView?,
-                                request: WebResourceRequest?
-                            ): Boolean {
-                                request?.url?.let { url ->
-                                    try {
-                                        context.startActivity(Intent(Intent.ACTION_VIEW, url))
-                                    } catch (e: Exception) {
-                                        // Ignore if no app can handle the URL
-                                    }
-                                }
-                                return true
-                            }
+                        setBackgroundColor(backgroundColor)
+                        
+                        val clickListener = android.view.View.OnClickListener {
+                            isUiVisible = !isUiVisible
                         }
+                        setOnClickListener(clickListener)
 
-                        loadUrl("file:///android_asset/markdown_template.html")
-                    }
-                },
-                update = { webView ->
-                    webView.setBackgroundColor(bgArgb)
-                    if (pageReady) {
-                        webView.evaluateJavascript(
-                            "setThemeColors('$textColorHex','$bgColorHex','$linkColorHex'," +
-                                "'$codeBgHex','$borderColorHex');" +
-                                "renderMarkdown(Android.getContent());",
-                            null
+                        addView(
+                            TextView(ctx).apply {
+                                layoutParams = ViewGroup.LayoutParams(
+                                    ViewGroup.LayoutParams.MATCH_PARENT,
+                                    ViewGroup.LayoutParams.WRAP_CONTENT
+                                )
+                                setTextIsSelectable(true)
+                                movementMethod = LinkMovementMethod.getInstance()
+                                setTextColor(textColor)
+                                setLinkTextColor(linkColor)
+                                textSize = 16f
+                                setLineSpacing(8f, 1f)
+                                val pad = (16 * ctx.resources.displayMetrics.density).toInt()
+                                // Add extra top padding so text isn't stuck under the status bar when reading
+                                setPadding(pad, pad * 3, pad, pad * 4)
+                                setOnClickListener(clickListener)
+                            }
                         )
                     }
+                },
+                update = { scrollView ->
+                    val textView = scrollView.getChildAt(0) as TextView
+                    textView.setTextColor(textColor)
+                    textView.setLinkTextColor(linkColor)
+                    scrollView.setBackgroundColor(backgroundColor)
+                    val processed = preprocessMarkdown(content)
+                    markwon.setMarkdown(textView, processed)
                 }
             )
 
