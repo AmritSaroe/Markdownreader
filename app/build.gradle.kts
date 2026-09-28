@@ -54,18 +54,7 @@ dependencies {
     implementation("androidx.compose.ui:ui-tooling-preview")
     implementation("androidx.compose.material3:material3")
     implementation("androidx.compose.material:material-icons-extended")
-
-    // Markwon for Markdown rendering
-    implementation("io.noties.markwon:core:4.6.2")
-    implementation("io.noties.markwon:ext-tables:4.6.2")
-    implementation("io.noties.markwon:ext-strikethrough:4.6.2")
-    implementation("io.noties.markwon:ext-tasklist:4.6.2")
-    implementation("io.noties.markwon:html:4.6.2")
-    implementation("io.noties.markwon:linkify:4.6.2")
-    implementation("io.noties.markwon:ext-latex:4.6.2")
-    implementation("ru.noties:jlatexmath-android:0.2.0")
-    implementation("ru.noties:jlatexmath-android-font-cyrillic:0.2.0")
-    implementation("ru.noties:jlatexmath-android-font-greek:0.2.0")
+    // Markdown rendering via WebView + KaTeX + markdown-it (loaded from CDN in assets/markdown_template.html)
 
     debugImplementation("androidx.compose.ui:ui-tooling")
     debugImplementation("androidx.compose.ui:ui-test-manifest")

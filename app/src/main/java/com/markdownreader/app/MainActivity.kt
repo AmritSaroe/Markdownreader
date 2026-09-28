@@ -81,17 +81,26 @@ class MainActivity : ComponentActivity() {
     private fun handleIntent(intent: Intent?) {
         if (intent == null) return
 
-        val uri: Uri? = when (intent.action) {
-            Intent.ACTION_VIEW -> intent.data
-            Intent.ACTION_SEND -> {
-                @Suppress("DEPRECATION")
-                intent.getParcelableExtra(Intent.EXTRA_STREAM)
+        when (intent.action) {
+            Intent.ACTION_VIEW -> {
+                intent.data?.let { handleUri(it) }
             }
-            else -> null
-        }
-
-        if (uri != null) {
-            handleUri(uri)
+            Intent.ACTION_SEND -> {
+                if (intent.type == "text/plain") {
+                    val sharedText = intent.getStringExtra(Intent.EXTRA_TEXT)
+                    if (sharedText != null) {
+                        currentFileName = "Shared Text.md"
+                        currentContent = sharedText
+                        errorMessage = null
+                        return
+                    }
+                }
+                @Suppress("DEPRECATION")
+                val uri = intent.getParcelableExtra<android.os.Parcelable>(Intent.EXTRA_STREAM) as? Uri
+                if (uri != null) {
+                    handleUri(uri)
+                }
+            }
         }
     }
 
