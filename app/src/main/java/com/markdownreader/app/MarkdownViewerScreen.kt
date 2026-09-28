@@ -152,11 +152,11 @@ fun MarkdownViewerScreen(
                                 movementMethod = LinkMovementMethod.getInstance()
                                 setTextColor(textColor)
                                 setLinkTextColor(linkColor)
-                                textSize = 16f
-                                setLineSpacing(8f, 1f)
-                                val pad = (16 * ctx.resources.displayMetrics.density).toInt()
-                                // Add extra top padding so text isn't stuck under the status bar when reading
-                                setPadding(pad, pad * 3, pad, pad * 4)
+                                textSize = 17f
+                                setLineSpacing(12f, 1.4f)
+                                val padHoriz = (24 * ctx.resources.displayMetrics.density).toInt()
+                                val padVert = (48 * ctx.resources.displayMetrics.density).toInt()
+                                setPadding(padHoriz, padVert, padHoriz, padVert * 2)
                                 setOnClickListener(clickListener)
                             }
                         )
@@ -173,18 +173,21 @@ fun MarkdownViewerScreen(
             )
 
             // Overlay TopAppBar
+            // Overlay TopAppBar
             AnimatedVisibility(
                 visible = isUiVisible,
                 enter = slideInVertically(initialOffsetY = { -it }),
                 exit = slideOutVertically(targetOffsetY = { -it }),
                 modifier = Modifier.align(Alignment.TopCenter)
             ) {
-                TopAppBar(
+                CenterAlignedTopAppBar(
                     title = {
                         Text(
                             text = fileName,
                             maxLines = 1,
-                            overflow = TextOverflow.Ellipsis
+                            overflow = TextOverflow.Ellipsis,
+                            fontWeight = androidx.compose.ui.text.font.FontWeight.Medium,
+                            fontSize = 18.sp
                         )
                     },
                     actions = {
@@ -198,20 +201,21 @@ fun MarkdownViewerScreen(
                             onThemeChange(nextTheme)
                         }) {
                             Icon(
-                                imageVector = Icons.Default.Palette,
+                                imageVector = androidx.compose.material.icons.outlined.Palette,
                                 contentDescription = "Toggle reading theme"
                             )
                         }
                         IconButton(onClick = onOpenFile) {
                             Icon(
-                                imageVector = Icons.Default.FolderOpen,
+                                imageVector = androidx.compose.material.icons.outlined.FolderOpen,
                                 contentDescription = "Open file"
                             )
                         }
                     },
-                    colors = TopAppBarDefaults.topAppBarColors(
-                        containerColor = MaterialTheme.colorScheme.surface.copy(alpha = 0.95f),
-                        titleContentColor = MaterialTheme.colorScheme.onSurface
+                    colors = TopAppBarDefaults.centerAlignedTopAppBarColors(
+                        containerColor = Color.Transparent,
+                        titleContentColor = MaterialTheme.colorScheme.onSurface,
+                        actionIconContentColor = MaterialTheme.colorScheme.onSurface
                     )
                 )
             }

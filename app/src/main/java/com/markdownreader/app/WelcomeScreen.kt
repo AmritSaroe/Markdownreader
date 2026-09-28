@@ -1,17 +1,20 @@
 package com.markdownreader.app
 
+import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.Description
-import androidx.compose.material.icons.filled.FolderOpen
+import androidx.compose.material.icons.outlined.AutoStories
+import androidx.compose.material.icons.outlined.Palette
 import androidx.compose.material3.*
 import androidx.compose.runtime.Composable
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
-
-import androidx.compose.material.icons.filled.Palette
+import androidx.compose.ui.unit.sp
 import com.markdownreader.app.ui.theme.ReadingTheme
 
 @OptIn(ExperimentalMaterial3Api::class)
@@ -23,91 +26,107 @@ fun WelcomeScreen(
     errorMessage: String? = null
 ) {
     Scaffold(
-        topBar = {
-            LargeTopAppBar(
-                title = { Text("Markdown Reader") },
-                actions = {
-                    IconButton(onClick = {
-                        val nextTheme = when (currentTheme) {
-                            ReadingTheme.LIGHT -> ReadingTheme.SEPIA
-                            ReadingTheme.SEPIA -> ReadingTheme.DARK
-                            ReadingTheme.DARK -> ReadingTheme.LIGHT
-                            ReadingTheme.SYSTEM -> ReadingTheme.SEPIA
-                        }
-                        onThemeChange(nextTheme)
-                    }) {
-                        Icon(
-                            imageVector = Icons.Default.Palette,
-                            contentDescription = "Toggle reading theme"
-                        )
-                    }
-                },
-                colors = TopAppBarDefaults.largeTopAppBarColors(
-                    containerColor = MaterialTheme.colorScheme.surface,
-                    titleContentColor = MaterialTheme.colorScheme.onSurface
-                )
-            )
-        }
+        containerColor = MaterialTheme.colorScheme.background
     ) { paddingValues ->
-        Column(
+        Box(
             modifier = Modifier
                 .fillMaxSize()
                 .padding(paddingValues)
-                .padding(horizontal = 32.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Surface(
-                shape = MaterialTheme.shapes.extraLarge,
-                color = MaterialTheme.colorScheme.secondaryContainer,
-                modifier = Modifier.size(120.dp)
+            // Minimalist Top Bar for Theme Toggle
+            IconButton(
+                onClick = {
+                    val nextTheme = when (currentTheme) {
+                        ReadingTheme.LIGHT -> ReadingTheme.SEPIA
+                        ReadingTheme.SEPIA -> ReadingTheme.DARK
+                        ReadingTheme.DARK -> ReadingTheme.LIGHT
+                        ReadingTheme.SYSTEM -> ReadingTheme.SEPIA
+                    }
+                    onThemeChange(nextTheme)
+                },
+                modifier = Modifier
+                    .align(Alignment.TopEnd)
+                    .padding(16.dp)
+                    .clip(CircleShape)
+                    .background(MaterialTheme.colorScheme.surfaceVariant.copy(alpha = 0.5f))
             ) {
-                Box(contentAlignment = Alignment.Center) {
-                    Icon(
-                        imageVector = Icons.Default.Description,
-                        contentDescription = null,
-                        modifier = Modifier.size(64.dp),
-                        tint = MaterialTheme.colorScheme.onSecondaryContainer
-                    )
-                }
-            }
-
-            Spacer(modifier = Modifier.height(32.dp))
-
-            Text(
-                text = "Read with ease",
-                style = MaterialTheme.typography.headlineMedium,
-                color = MaterialTheme.colorScheme.onSurface
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "Open a .md file from your file manager or tap below to browse.",
-                style = MaterialTheme.typography.bodyLarge,
-                color = MaterialTheme.colorScheme.onSurfaceVariant,
-                textAlign = TextAlign.Center
-            )
-
-            if (errorMessage != null) {
-                Spacer(modifier = Modifier.height(16.dp))
-                Text(
-                    text = errorMessage,
-                    style = MaterialTheme.typography.bodyMedium,
-                    color = MaterialTheme.colorScheme.error,
-                    textAlign = TextAlign.Center
+                Icon(
+                    imageVector = Icons.Outlined.Palette,
+                    contentDescription = "Toggle Theme",
+                    tint = MaterialTheme.colorScheme.onSurface
                 )
             }
 
-            Spacer(modifier = Modifier.height(48.dp))
+            // Centered Aesthetic Content
+            Column(
+                modifier = Modifier
+                    .align(Alignment.Center)
+                    .padding(horizontal = 40.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
+                // Subtle elegant icon
+                Icon(
+                    imageVector = Icons.Outlined.AutoStories,
+                    contentDescription = null,
+                    modifier = Modifier.size(72.dp),
+                    tint = MaterialTheme.colorScheme.primary.copy(alpha = 0.8f)
+                )
 
-            ExtendedFloatingActionButton(
-                onClick = onOpenFile,
-                icon = { Icon(Icons.Default.FolderOpen, contentDescription = null) },
-                text = { Text("Open File") },
-                containerColor = MaterialTheme.colorScheme.primaryContainer,
-                contentColor = MaterialTheme.colorScheme.onPrimaryContainer
-            )
+                Spacer(modifier = Modifier.height(32.dp))
+
+                // Aesthetic Title
+                Text(
+                    text = "Aesthetic Reader",
+                    fontSize = 28.sp,
+                    fontWeight = FontWeight.Light,
+                    letterSpacing = 1.5.sp,
+                    color = MaterialTheme.colorScheme.onBackground
+                )
+
+                Spacer(modifier = Modifier.height(16.dp))
+
+                // Minimal Subtitle
+                Text(
+                    text = "A distraction-free sanctuary for your markdown notes. Tap below to begin.",
+                    style = MaterialTheme.typography.bodyLarge,
+                    color = MaterialTheme.colorScheme.onBackground.copy(alpha = 0.6f),
+                    textAlign = TextAlign.Center,
+                    lineHeight = 24.sp
+                )
+
+                if (errorMessage != null) {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    Text(
+                        text = errorMessage,
+                        style = MaterialTheme.typography.bodyMedium,
+                        color = MaterialTheme.colorScheme.error,
+                        textAlign = TextAlign.Center
+                    )
+                }
+
+                Spacer(modifier = Modifier.height(48.dp))
+
+                // Sleek, modern pill button
+                Button(
+                    onClick = onOpenFile,
+                    modifier = Modifier
+                        .height(56.dp)
+                        .fillMaxWidth(0.8f),
+                    shape = CircleShape,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = MaterialTheme.colorScheme.primary,
+                        contentColor = MaterialTheme.colorScheme.onPrimary
+                    ),
+                    elevation = ButtonDefaults.buttonElevation(defaultElevation = 0.dp, pressedElevation = 0.dp)
+                ) {
+                    Text(
+                        text = "Open File",
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.Medium,
+                        letterSpacing = 1.sp
+                    )
+                }
+            }
         }
     }
 }
