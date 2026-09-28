@@ -19,7 +19,6 @@ import androidx.compose.ui.graphics.toArgb
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
-import androidx.compose.ui.platform.LocalDensity
 import androidx.compose.ui.zIndex
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.viewinterop.AndroidView
@@ -37,7 +36,7 @@ import androidx.compose.animation.slideInVertically
 import androidx.compose.animation.slideOutVertically
 import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.WindowInsets
-import androidx.compose.foundation.layout.statusBars
+import androidx.compose.foundation.layout.safeDrawing
 import androidx.compose.foundation.layout.consumeWindowInsets
 import androidx.compose.runtime.DisposableEffect
 import androidx.compose.runtime.LaunchedEffect
@@ -157,7 +156,7 @@ fun MarkdownViewerScreen(
     Scaffold(
         modifier = Modifier.fillMaxSize(),
         containerColor = MaterialTheme.colorScheme.background,
-        contentWindowInsets = WindowInsets.statusBars,
+        contentWindowInsets = WindowInsets.safeDrawing,
         topBar = {
             AnimatedVisibility(
                 visible = isUiVisible,
@@ -206,11 +205,10 @@ fun MarkdownViewerScreen(
             }
         }
     ) { innerPadding ->
-        val density = LocalDensity.current
-        
         Box(
             modifier = Modifier
                 .fillMaxSize()
+                .padding(innerPadding)
         ) {
             
             // Fullscreen content
@@ -253,11 +251,6 @@ fun MarkdownViewerScreen(
                 },
                 update = { scrollView ->
                     val textView = scrollView.getChildAt(0) as TextView
-                    
-                    // Apply inner padding to allow content to slide behind toolbar
-                    val topPaddingPx = with(density) { innerPadding.calculateTopPadding().toPx().toInt() }
-                    val bottomPaddingPx = with(density) { innerPadding.calculateBottomPadding().toPx().toInt() }
-                    scrollView.setPadding(0, topPaddingPx, 0, bottomPaddingPx)
                     
                     // Only update if text color or background changed (or first time)
                     if (textView.currentTextColor != textColor) {
