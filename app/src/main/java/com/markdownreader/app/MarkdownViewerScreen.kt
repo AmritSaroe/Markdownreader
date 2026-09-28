@@ -111,7 +111,13 @@ fun MarkdownViewerScreen(
         val textSizePx = 16f * context.resources.displayMetrics.scaledDensity
         Markwon.builder(context)
             .usePlugin(io.noties.markwon.inlineparser.MarkwonInlineParserPlugin.create())
-            .usePlugin(TablePlugin.create(context))
+            .usePlugin(TablePlugin.create { builder ->
+                val density = context.resources.displayMetrics.density
+                builder
+                    .tableCellPadding((4 * density).toInt())
+                    .tableBorderWidth((1 * density).toInt())
+                    .tableBorderColor(androidx.core.graphics.ColorUtils.setAlphaComponent(textColor, 40))
+            })
             .usePlugin(StrikethroughPlugin.create())
             .usePlugin(TaskListPlugin.create(context))
             .usePlugin(HtmlPlugin.create())
@@ -241,7 +247,7 @@ fun MarkdownViewerScreen(
                                 setLinkTextColor(linkColor)
                                 textSize = 17f
                                 setLineSpacing(0f, 1.35f)
-                                val padHoriz = (22 * ctx.resources.displayMetrics.density).toInt()
+                                val padHoriz = (16 * ctx.resources.displayMetrics.density).toInt()
                                 val padVert = (16 * ctx.resources.displayMetrics.density).toInt()
                                 setPadding(padHoriz, padVert, padHoriz, padVert * 2)
                                 setOnClickListener(clickListener)
