@@ -7,6 +7,7 @@ import android.view.ViewGroup
 import android.widget.ScrollView
 import android.widget.TextView
 import androidx.compose.foundation.layout.fillMaxSize
+import androidx.compose.foundation.layout.systemBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.FolderOpen
@@ -141,7 +142,7 @@ fun MarkdownViewerScreen(
         modifier = Modifier.fillMaxSize(),
         color = MaterialTheme.colorScheme.background
     ) {
-        Box(modifier = Modifier.fillMaxSize().androidx.compose.foundation.layout.systemBarsPadding()) {
+        Box(modifier = Modifier.fillMaxSize().systemBarsPadding()) {
             
             // Fullscreen content
             AndroidView(
