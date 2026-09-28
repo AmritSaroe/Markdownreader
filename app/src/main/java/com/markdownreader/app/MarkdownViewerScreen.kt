@@ -15,6 +15,8 @@ import androidx.compose.runtime.Composable
 import androidx.compose.runtime.remember
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.toArgb
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.unit.sp
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.viewinterop.AndroidView
@@ -112,8 +114,8 @@ fun MarkdownViewerScreen(
                 builder.inlinesEnabled(true)
                 builder.blocksEnabled(true)
                 builder.theme().textColor(textColor)
-                builder.theme().blockBackground(backgroundColor)
-                builder.theme().inlineBackground(backgroundColor)
+                builder.theme().blockBackgroundProvider { android.graphics.drawable.ColorDrawable(backgroundColor) }
+                builder.theme().inlineBackgroundProvider { android.graphics.drawable.ColorDrawable(backgroundColor) }
                 builder.errorHandler { _, _ -> null }
             })
             .build()
@@ -201,13 +203,13 @@ fun MarkdownViewerScreen(
                             onThemeChange(nextTheme)
                         }) {
                             Icon(
-                                imageVector = androidx.compose.material.icons.outlined.Palette,
+                                imageVector = Icons.Default.Palette,
                                 contentDescription = "Toggle reading theme"
                             )
                         }
                         IconButton(onClick = onOpenFile) {
                             Icon(
-                                imageVector = androidx.compose.material.icons.outlined.FolderOpen,
+                                imageVector = Icons.Default.FolderOpen,
                                 contentDescription = "Open file"
                             )
                         }
